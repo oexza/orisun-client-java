@@ -184,20 +184,38 @@ jobs:
 
             ## Installation
 
-            ### Option 1: Download JAR
+            Download the `orisun-java-client-${{ needs.validate.outputs.version }}.jar` file from the assets below.
 
-            Download the JAR file from the assets below and add it to your project.
+            ### Maven
 
-            ### Option 2: GitHub Packages
+            **Option 1: System dependency**
 
-            Add to your `pom.xml`:
+            Place the JAR in your project's `lib/` directory and add to `pom.xml`:
 
             ```xml
-            <repository>
-                <id>github</id>
-                <url>https://maven.pkg.github.com/oexza/orisun-client-java</url>
-            </repository>
+            <dependency>
+                <groupId>com.orisunlabs</groupId>
+                <artifactId>orisun-java-client</artifactId>
+                <version>${{ needs.validate.outputs.version }}</version>
+                <scope>system</scope>
+                <systemPath>${project.basedir}/lib/orisun-java-client-${{ needs.validate.outputs.version }}.jar</systemPath>
+            </dependency>
+            ```
 
+            **Option 2: Install to local Maven repository**
+
+            ```bash
+            mvn install:install-file \
+              -Dfile=orisun-java-client-${{ needs.validate.outputs.version }}.jar \
+              -DgroupId=com.orisunlabs \
+              -DartifactId=orisun-java-client \
+              -Dversion=${{ needs.validate.outputs.version }} \
+              -Dpackaging=jar
+            ```
+
+            Then add as a regular dependency in `pom.xml`:
+
+            ```xml
             <dependency>
                 <groupId>com.orisunlabs</groupId>
                 <artifactId>orisun-java-client</artifactId>
@@ -205,49 +223,91 @@ jobs:
             </dependency>
             ```
 
-            Or for Gradle:
+            ### Gradle
+
+            **Option 1: Direct file dependency**
+
+            Place the JAR in your project's `libs/` directory and add to `build.gradle`:
+
+            ```groovy
+            dependencies {
+                implementation files("libs/orisun-java-client-${{ needs.validate.outputs.version }}.jar")
+            }
+            ```
+
+            **Option 2: Flat directory repository**
 
             ```groovy
             repositories {
-                maven { url 'https://maven.pkg.github.com/oexza/orisun-client-java' }
+                flatDir { dirs 'libs' }
             }
 
-            implementation 'com.orisunlabs:orisun-java-client:${{ needs.validate.outputs.version }}'
+            dependencies {
+                implementation "com.orisunlabs:orisun-java-client:${{ needs.validate.outputs.version }}"
+            }
             ```
 
-            **Note**: To use GitHub Packages, you'll need to authenticate:
+            **Option 3: Build from source**
 
-            ```groovy
-            // In ~/.gradle/gradle.properties
-            githubUsername=YOUR_GITHUB_USERNAME
-            githubPassword=YOUR_GITHUB_TOKEN
+            ```bash
+            git clone https://github.com/oexza/orisun-client-java.git
+            cd orisun-client-java
+            git submodule update --init --recursive
+            ./gradlew build
             ```
 
-            Or in `pom.xml`:
-
-            ```xml
-            <server>
-                <id>github</id>
-                <username>${env.GITHUB_USERNAME}</username>
-                <password>${env.GITHUB_TOKEN}</password>
-            </server>
-            ```
+            The JAR will be at: `build/libs/orisun-client-${{ needs.validate.outputs.version }}.jar`
 
             ## Usage
 
             See the [README](https://github.com/oexza/orisun-client-java) for detailed usage instructions.
 
-            Quick start:
+            ### Quick Start - OrisunClient (Event Operations)
 
             ```java
             import com.orisunlabs.orisun.client.OrisunClient;
+            import com.orisun.eventstore.Eventstore;
 
-            OrisunClient client = OrisunClient.newBuilder()
+            try (OrisunClient client = OrisunClient.newBuilder()
                 .withServer("localhost", 5005)
                 .withBasicAuth("admin", "changeit")
-                .build();
+                .build()) {
 
-            // Use the client...
+                // Save events
+                Eventstore.SaveEventsRequest request = Eventstore.SaveEventsRequest.newBuilder()
+                    .setBoundary("users")
+                    .addEvents(Eventstore.EventToSave.newBuilder()
+                        .setEventId(java.util.UUID.randomUUID().toString())
+                        .setEventType("UserCreated")
+                        .setData("{\"userId\":\"user-123\"}")
+                        .build())
+                    .build();
+
+                client.saveEvents(request);
+            }
+            ```
+
+            ### Quick Start - AdminClient (User Management)
+
+            ```java
+            import com.orisunlabs.orisun.client.AdminClient;
+            import com.orisun.admin.AdminOuterClass.*;
+
+            try (AdminClient adminClient = AdminClient.newBuilder()
+                .withServer("localhost", 5005)
+                .withBasicAuth("admin", "changeit")
+                .build()) {
+
+                // Create a user
+                CreateUserRequest request = CreateUserRequest.newBuilder()
+                    .setName("John Doe")
+                    .setUsername("johndoe")
+                    .setPassword("securePassword123")
+                    .addRoles("user")
+                    .build();
+
+                AdminUser user = adminClient.createUser(request);
+            }
             ```
           files: release-artifacts/*
           draft: false
