@@ -62,31 +62,25 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build JAR
-        run: ./gradlew clean build jar
-
-      - name: Build Sources JAR
-        run: ./gradlew sourcesJar
-
-      - name: Build Javadoc JAR
-        run: ./gradlew javadocJar
+      - name: Build release artifacts
+        run: ./gradlew clean build shadowJar sourcesJar javadocJar
 
       - name: Prepare release artifacts
         run: |
           mkdir -p release-artifacts
           cd build/libs
 
-          # Find the main JAR (without sources or javadoc suffix)
-          main_jar=$(ls *.jar 2>/dev/null | grep -v 'javadoc' | grep -v 'sources' | grep -v 'plain' | head -1)
+          # Find the shadow JAR (fat JAR with all dependencies) - this is what users want
+          shadow_jar=$(ls orisun-client*.jar 2>/dev/null | grep -v 'javadoc' | grep -v 'sources' | head -1)
 
-          if [ -z "$main_jar" ]; then
-            echo "Error: No main JAR file found"
+          if [ -z "$shadow_jar" ]; then
+            echo "Error: No shadow JAR file found"
             ls -la
             exit 1
           fi
 
-          echo "Found main JAR: $main_jar"
-          cp "$main_jar" ../../release-artifacts/orisun-java-client-${{ needs.validate.outputs.version }}.jar
+          echo "Found shadow JAR: $shadow_jar"
+          cp "$shadow_jar" ../../release-artifacts/orisun-java-client-${{ needs.validate.outputs.version }}.jar
 
           # Copy sources and javadoc JARs
           if ls *sources.jar 1> /dev/null 2>&1; then

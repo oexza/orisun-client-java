@@ -18,17 +18,20 @@ public class AdminRequestValidator {
                     .addContext("operation", "createUser");
         }
 
-        if (request.getName() == null || request.getName().trim().isEmpty()) {
+        request.getName();
+        if (request.getName().trim().isEmpty()) {
             throw new OrisunException("Name is required")
                     .addContext("operation", "createUser");
         }
 
-        if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
+        request.getUsername();
+        if (request.getUsername().trim().isEmpty()) {
             throw new OrisunException("Username is required")
                     .addContext("operation", "createUser");
         }
 
-        if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+        request.getPassword();
+        if (request.getPassword().trim().isEmpty()) {
             throw new OrisunException("Password is required")
                     .addContext("operation", "createUser");
         }
