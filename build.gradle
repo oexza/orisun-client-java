@@ -74,7 +74,7 @@ publishing {
             project.shadow.component(publication)
             groupId = 'com.orisunlabs'
             artifactId = 'orisun-java-client'
-            version = version
+            version = project.version
             
             pom {
                 name = 'Orisun Java Client'
