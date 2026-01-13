@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'com.orisunlabs'
-version = '0.0.1'
+version = project.findProperty('version') ?: '0.0.1'
 
 repositories {
     mavenCentral()
