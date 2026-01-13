@@ -62,6 +62,18 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Update README with release version
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          sed -i "s/<version>[^<]*<\/version>/<version>${VERSION}<\/version>/g" README.md
+          sed -i "s/implementation '[^']*'/implementation 'com.orisunlabs:orisun-java-client:${VERSION}'/g" README.md
+          sed -i 's/implementation "[^"]*"/implementation "com.orisunlabs:orisun-java-client:${VERSION}"/g' README.md
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "chore: update README to version ${VERSION}"
+          git push
+
       - name: Build release artifacts
         run: ./gradlew clean build shadowJar sourcesJar javadocJar
 
@@ -184,13 +196,66 @@ jobs:
 
             ## Installation
 
-            Download the `orisun-java-client-${{ needs.validate.outputs.version }}.jar` file from the assets below.
+            ### Option 1: GitHub Packages (Recommended)
 
-            ### Maven
+            The client is published to GitHub Packages.
 
-            **Option 1: System dependency**
+            **Maven**
 
-            Place the JAR in your project's `lib/` directory and add to `pom.xml`:
+            Add to `pom.xml`:
+
+            ```xml
+            <repositories>
+                <repository>
+                    <id>github</id>
+                    <url>https://maven.pkg.github.com/oexza/orisun-client-java</url>
+                </repository>
+            </repositories>
+
+            <dependencies>
+                <dependency>
+                    <groupId>com.orisunlabs</groupId>
+                    <artifactId>orisun-java-client</artifactId>
+                    <version>${{ needs.validate.outputs.version }}</version>
+                </dependency>
+            </dependencies>
+            ```
+
+            Configure authentication in `~/.m2/settings.xml`:
+
+            ```xml
+            <server>
+                <id>github</id>
+                <username>YOUR_GITHUB_USERNAME</username>
+                <password>YOUR_GITHUB_TOKEN</password>
+            </server>
+            ```
+
+            **Gradle**
+
+            Add to `build.gradle`:
+
+            ```groovy
+            repositories {
+                maven {
+                    url = 'https://maven.pkg.github.com/oexza/orisun-client-java'
+                    credentials {
+                        username = project.findProperty('githubUsername') ?: System.getenv('GITHUB_USERNAME')
+                        password = project.findProperty('githubToken') ?: System.getenv('GITHUB_TOKEN')
+                    }
+                }
+            }
+
+            dependencies {
+                implementation "com.orisunlabs:orisun-java-client:${{ needs.validate.outputs.version }}"
+            }
+            ```
+
+            ### Option 2: Download JAR
+
+            Download `orisun-java-client-${{ needs.validate.outputs.version }}.jar` from the assets below.
+
+            **Maven - System dependency:**
 
             ```xml
             <dependency>
@@ -202,61 +267,13 @@ jobs:
             </dependency>
             ```
 
-            **Option 2: Install to local Maven repository**
-
-            ```bash
-            mvn install:install-file \
-              -Dfile=orisun-java-client-${{ needs.validate.outputs.version }}.jar \
-              -DgroupId=com.orisunlabs \
-              -DartifactId=orisun-java-client \
-              -Dversion=${{ needs.validate.outputs.version }} \
-              -Dpackaging=jar
-            ```
-
-            Then add as a regular dependency in `pom.xml`:
-
-            ```xml
-            <dependency>
-                <groupId>com.orisunlabs</groupId>
-                <artifactId>orisun-java-client</artifactId>
-                <version>${{ needs.validate.outputs.version }}</version>
-            </dependency>
-            ```
-
-            ### Gradle
-
-            **Option 1: Direct file dependency**
-
-            Place the JAR in your project's `libs/` directory and add to `build.gradle`:
+            **Gradle - File dependency:**
 
             ```groovy
             dependencies {
                 implementation files("libs/orisun-java-client-${{ needs.validate.outputs.version }}.jar")
             }
             ```
-
-            **Option 2: Flat directory repository**
-
-            ```groovy
-            repositories {
-                flatDir { dirs 'libs' }
-            }
-
-            dependencies {
-                implementation "com.orisunlabs:orisun-java-client:${{ needs.validate.outputs.version }}"
-            }
-            ```
-
-            **Option 3: Build from source**
-
-            ```bash
-            git clone https://github.com/oexza/orisun-client-java.git
-            cd orisun-client-java
-            git submodule update --init --recursive
-            ./gradlew build
-            ```
-
-            The JAR will be at: `build/libs/orisun-client-${{ needs.validate.outputs.version }}.jar`
 
             ## Usage
 

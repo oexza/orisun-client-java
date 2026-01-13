@@ -13,79 +13,53 @@ A Java client for the Orisun event store, providing a simple and intuitive inter
 
 ## Installation
 
-### Download from GitHub Releases
+### Option 1: GitHub Packages (Recommended)
 
-The latest release JAR (with all dependencies included) can be downloaded from the [Releases](https://github.com/oexza/orisun-client-java/releases) page.
+The client is published to GitHub Packages. To use it, you'll need to authenticate with your GitHub credentials.
 
-Download the `orisun-java-client-{version}.jar` file and follow the instructions below for your build system.
+**Maven**
 
-### Using in Your Project
-
-#### Maven
-
-1. Download the JAR file from the [Releases](https://github.com/oexza/orisun-client-java/releases) page
-2. Place the JAR in your project's `lib/` directory (or any directory you prefer)
-3. Add the following to your `pom.xml`:
+Add the GitHub Packages repository and dependency to your `pom.xml`:
 
 ```xml
+<repositories>
+    <repository>
+        <id>github</id>
+        <url>https://maven.pkg.github.com/oexza/orisun-client-java</url>
+    </repository>
+</repositories>
+
 <dependencies>
     <dependency>
         <groupId>com.orisunlabs</groupId>
         <artifactId>orisun-java-client</artifactId>
         <version>0.0.1</version>
-        <scope>system</scope>
-        <systemPath>${project.basedir}/lib/orisun-java-client-0.0.1.jar</systemPath>
     </dependency>
 </dependencies>
 ```
 
-**Note**: Replace `0.0.1` with the actual version you downloaded and adjust the path if you placed the JAR in a different location.
-
-Alternatively, you can install the JAR to your local Maven repository:
-
-```bash
-mvn install:install-file \
-  -Dfile=orisun-java-client-0.0.1.jar \
-  -DgroupId=com.orisunlabs \
-  -DartifactId=orisun-java-client \
-  -Dversion=0.0.1 \
-  -Dpackaging=jar
-```
-
-Then add it as a regular dependency:
+Configure authentication in your `~/.m2/settings.xml`:
 
 ```xml
-<dependency>
-    <groupId>com.orisunlabs</groupId>
-    <artifactId>orisun-java-client</artifactId>
-    <version>0.0.1</version>
-</dependency>
+<server>
+    <id>github</id>
+    <username>YOUR_GITHUB_USERNAME</username>
+    <password>YOUR_GITHUB_TOKEN</password>
+</server>
 ```
 
-#### Gradle
+**Gradle**
 
-**Option 1: Direct file dependency**
-
-1. Download the JAR file from the [Releases](https://github.com/oexza/orisun-client-java/releases) page
-2. Place the JAR in your project's `libs/` directory
-3. Add the following to your `build.gradle`:
-
-```groovy
-dependencies {
-    implementation files('libs/orisun-java-client-0.0.1.jar')
-}
-```
-
-**Option 2: Flat directory repository**
-
-1. Create a `libs/` directory in your project
-2. Place the JAR file in the `libs/` directory
-3. Add the following to your `build.gradle`:
+Add to your `build.gradle`:
 
 ```groovy
 repositories {
-    flatDir {
-        dirs 'libs'
+    maven {
+        url = 'https://maven.pkg.github.com/oexza/orisun-client-java'
+        credentials {
+            username = project.findProperty('githubUsername') ?: System.getenv('GITHUB_USERNAME')
+            password = project.findProperty('githubToken') ?: System.getenv('GITHUB_TOKEN')
+        }
     }
 }
 
@@ -94,19 +68,50 @@ dependencies {
 }
 ```
 
-**Option 3: Local Maven repository**
+Add credentials to `~/.gradle/gradle.properties`:
 
-First, install the JAR to your local Maven repository:
-
-```bash
-./gradlew publishToMavenLocal
+```properties
+githubUsername=YOUR_GITHUB_USERNAME
+githubToken=YOUR_GITHUB_TOKEN
 ```
 
-Then add it to your project's `build.gradle`:
+**Note**: You can create a GitHub personal access token at https://github.com/settings/tokens
+
+### Option 2: Download from GitHub Releases
+
+If you prefer not to use GitHub Packages, you can download the JAR directly from [Releases](https://github.com/oexza/orisun-client-java/releases).
+
+Download the `orisun-java-client-{version}.jar` file and use one of the methods below.
+
+#### Maven - System Dependency
+
+Place the JAR in your project's `lib/` directory and add to `pom.xml`:
+
+```xml
+<dependency>
+    <groupId>com.orisunlabs</groupId>
+    <artifactId>orisun-java-client</artifactId>
+    <version>0.0.1</version>
+    <scope>system</scope>
+    <systemPath>${project.basedir}/lib/orisun-java-client-0.0.1.jar</systemPath>
+</dependency>
+```
+
+#### Gradle - File Dependency
+
+Place the JAR in your project's `libs/` directory and add to `build.gradle`:
+
+```groovy
+dependencies {
+    implementation files('libs/orisun-java-client-0.0.1.jar')
+}
+```
+
+Or use a flat directory repository:
 
 ```groovy
 repositories {
-    mavenLocal()
+    flatDir { dirs 'libs' }
 }
 
 dependencies {
