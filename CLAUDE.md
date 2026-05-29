@@ -99,7 +99,8 @@ The `AdminClient` class mirrors the architecture of `OrisunClient` but focuses o
 - **User Management**: `createUser`, `deleteUser`, `changePassword`, `listUsers`
 - **Authentication**: `validateCredentials`
 - **Statistics**: `getUserCount`, `getEventCount`
-- **Index Management**: `createIndex`, `dropIndex`
+
+Index management is exposed on `OrisunClient` through the EventStore service.
 
 Both clients share the same authentication flow, token caching mechanism, and connection management patterns.
 
@@ -255,7 +256,7 @@ CreateIndexRequest request = CreateIndexRequest.newBuilder()
         .build())
     .setConditionCombinator(ConditionCombinator.AND)
     .build();
-adminClient.createIndex(request);
+orisunClient.createIndex(request);
 ```
 
 **Dropping an index:**
@@ -264,5 +265,5 @@ DropIndexRequest request = DropIndexRequest.newBuilder()
     .setBoundary("events-boundary")
     .setName("idx_user_id")
     .build();
-adminClient.dropIndex(request);
+orisunClient.dropIndex(request);
 ```

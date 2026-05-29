@@ -479,6 +479,56 @@ public class OrisunClient implements AutoCloseable {
     }
 
     /**
+     * Create a new index on a boundary.
+     */
+    public void createIndex(Eventstore.CreateIndexRequest request) throws OrisunException {
+        RequestValidator.validateCreateIndexRequest(request);
+
+        logger.debug("Creating index '{}' on boundary '{}'", request.getName(), request.getBoundary());
+
+        try {
+            blockingStub
+                    .withDeadlineAfter(defaultTimeoutSeconds, TimeUnit.SECONDS)
+                    .createIndex(request);
+
+            logger.info("Successfully created index '{}' on boundary '{}'", request.getName(), request.getBoundary());
+        } catch (StatusRuntimeException e) {
+            Map<String, Object> context = new HashMap<>();
+            context.put("operation", "createIndex");
+            context.put("boundary", request.getBoundary());
+            context.put("indexName", request.getName());
+            context.put("statusCode", e.getStatus().getCode().name());
+
+            throw new OrisunException("Failed to create index", e, context);
+        }
+    }
+
+    /**
+     * Drop an index from a boundary.
+     */
+    public void dropIndex(Eventstore.DropIndexRequest request) throws OrisunException {
+        RequestValidator.validateDropIndexRequest(request);
+
+        logger.debug("Dropping index '{}' from boundary '{}'", request.getName(), request.getBoundary());
+
+        try {
+            blockingStub
+                    .withDeadlineAfter(defaultTimeoutSeconds, TimeUnit.SECONDS)
+                    .dropIndex(request);
+
+            logger.info("Successfully dropped index '{}' from boundary '{}'", request.getName(), request.getBoundary());
+        } catch (StatusRuntimeException e) {
+            Map<String, Object> context = new HashMap<>();
+            context.put("operation", "dropIndex");
+            context.put("boundary", request.getBoundary());
+            context.put("indexName", request.getName());
+            context.put("statusCode", e.getStatus().getCode().name());
+
+            throw new OrisunException("Failed to drop index", e, context);
+        }
+    }
+
+    /**
      * Check if the client is connected to the server
      *
      * @return true if connected, false otherwise
